@@ -1,6 +1,9 @@
 function History() {
-	  this.microsecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-	  this.oneWeekAgo = (new Date).getTime() - microsecondsPerWeek;
+		this.second = 1000;
+		this.minute = this.second * 60;
+		this.hour = this.minute * 60;
+		this.day = this.hour * 24;
+		this.week = this.day * 7;
     this.pages = [];
     this.urlToCount = {};
 }
@@ -12,24 +15,23 @@ History.prototype.getDateRange = function(start,end) {
 	}
 
 	if(end) options.endTime = end;
-	chrome.history.search(options,);
+	chrome.history.search(options,function(historyItems) { this.pages = historyItems; });
 }
-
+History.prototype.now = function() {
+	return (new Date).getTime();
+}
 History.prototype.getPastWeek = function() {
-	// To look for history items visited in the last week,
-	// subtract a week of microseconds from the current time.
-	var microsecondsPerWeek = 1000 * 60 * 60 * 24 * 7;
-	var oneWeekAgo = (new Date).getTime() - microsecondsPerWeek;
-
-	// Track the number of callbacks from chrome.history.getVisits()
-	// that we expect to get.  When it reaches zero, we have all results.
-
-	chrome.history.search({
-		'text': '',              // Return every history item....
-		'startTime': oneWeekAgo  // that was accessed less than one week ago.
-	},function(historyItems) { archives.pages = historyItems; });
+	var current = this.now();
+	this.getDateRange(current - this.week);
 }
-
+History.prototype.getYesterday = function() {
+	var current = this.now();
+	this.getDateRange(current - this.day * 2,current - this.day);
+}
+History.prototype.getToday = function() {
+	var current = this.now();
+	this.getDateRange(current - this.day);
+}
 History.prototype.matchUrl = function(url, regex)
 {
     var re = new RegExp(regex);
